@@ -1,0 +1,1 @@
+# projeto_integrador_BANCO_DE_DADOS_koru_ecommerce_cosmetico_egipcio
