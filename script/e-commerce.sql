@@ -93,12 +93,9 @@ CREATE TABLE produtos (
     descricao TEXT,
     preco DECIMAL(10, 2) NOT NULL,
     estoque INT NOT NULL,
-    id_fornecedor INT,
     id_marca INT,
     id_categoria INT,
     CHECK (estoque >= 0),
-    FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id_fornecedor)
-    ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
     ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_marca) REFERENCES marcas(id_marca)
@@ -302,28 +299,28 @@ VALUES
 ('Encantos do Vale do Nilo');
 
 -- PRODUTOS
-INSERT INTO produtos (nome, descricao, preco, estoque, id_fornecedor, id_marca, id_categoria)
+INSERT INTO produtos (nome, descricao, preco, estoque, id_marca, id_categoria)
 VALUES
-('Sérum da Cleópatra', 'Fórmula exclusiva para revitalização da pele inspirada nos antigos rituais egípcios.', 120.00, 50, 1, 3, 1),
-('Sombra do Deserto', 'Paleta de sombras com tonalidades inspiradas nas cores do deserto egípcio.', 65.00, 80, 2, 1, 2),
-('Loção Nefertiti', 'Hidratante com fragrância única que remete aos perfumes das rainhas egípcias.', 80.00, 30, 3, 2, 3),
-('Óleo de Ísis', 'Óleo capilar enriquecido com ingredientes exóticos para fortalecimento e brilho dos cabelos.', 45.00, 100, 1, 4, 4),
-('Delineador do Nilo', 'Delineador líquido de longa duração para realçar o olhar, inspirado na beleza do rio Nilo.', 35.00, 120, 2, 3, 5),
-('Sabonete Luxuoso de Cleópatra', 'Sabonete artesanal com ingredientes naturais para um banho luxuoso e revigorante.', 25.00, 200, 3, 4, 6),
-('Poção da Deusa Hathor', 'Essência mística para atrair a beleza e a proteção da deusa Hathor.', 150.00, 20, 4, 5, 7),
-('Máscara da Esfinge', 'Máscara facial purificante inspirada nos segredos da Esfinge.', 40.00, 80, 3, 2, 1),
-('Bálsamo de Ícaro', 'Bálsamo labial com ingredientes especiais para lábios irresistíveis.', 20.00, 150, 2, 1, 4),
-('Elixir do Vale do Oásis', 'Fragrância única que evoca os encantos do Vale do Oásis.', 90.00, 40, 1, 3, 5),
-('Sais de Banho de Nefertari', 'Sais de banho aromáticos para um momento relaxante e revigorante.', 30.00, 100, 4, 5, 6),
-('Loção Corporal de Ra', 'Loção corporal com essência solar inspirada no deus Ra.', 55.00, 60, 3, 4, 2),
-('Pó Iluminador de Anúbis', 'Iluminador em pó para destacar os pontos altos do rosto, com inspiração no deus Anúbis.', 75.00, 30, 2, 1, 3),
-('Água de Luxor', 'Água facial revitalizante inspirada nas águas do rio Luxor.', 28.00, 180, 2, 2, 4),
-('Creme de Isis', 'Creme facial noturno com propriedades regeneradoras, inspirado na deusa Isis.', 100.00, 25, 1, 3, 5),
-('Batom Encantado de Bastet', 'Batom de longa duração com cores intensas, inspirado na deusa Bastet.', 45.00, 70, 4, 4, 1),
-('Esmalte de Hathor', 'Esmalte com cores vibrantes inspiradas na deusa Hathor.', 18.00, 120, 3, 5, 2),
-('Perfume do Faraó', 'Fragrância exclusiva para homens inspirada na elegância dos faraós.', 80.00, 50, 1, 2, 3),
-('Máscara Capilar de Ísis', 'Máscara capilar nutritiva inspirada na deusa Ísis para cabelos deslumbrantes.', 60.00, 60, 4, 1, 5),
-('Sérum Noturno do Deserto', 'Sérum facial noturno para regeneração da pele, com ingredientes do deserto.', 110.00, 35, 2, 3, 1);
+('Sérum da Cleópatra', 'Fórmula exclusiva para revitalização da pele inspirada nos antigos rituais egípcios.', 120.00, 50, 3, 1),
+('Sombra do Deserto', 'Paleta de sombras com tonalidades inspiradas nas cores do deserto egípcio.', 65.00, 80, 1, 2),
+('Loção Nefertiti', 'Hidratante com fragrância única que remete aos perfumes das rainhas egípcias.', 80.00, 30, 2, 3),
+('Óleo de Ísis', 'Óleo capilar enriquecido com ingredientes exóticos para fortalecimento e brilho dos cabelos.', 45.00, 100, 4, 4),
+('Delineador do Nilo', 'Delineador líquido de longa duração para realçar o olhar, inspirado na beleza do rio Nilo.', 35.00, 120, 3, 5),
+('Sabonete Luxuoso de Cleópatra', 'Sabonete artesanal com ingredientes naturais para um banho luxuoso e revigorante.', 25.00, 200, 4, 6),
+('Poção da Deusa Hathor', 'Essência mística para atrair a beleza e a proteção da deusa Hathor.', 150.00, 20, 5, 7),
+('Máscara da Esfinge', 'Máscara facial purificante inspirada nos segredos da Esfinge.', 40.00, 80, 2, 1),
+('Bálsamo de Ícaro', 'Bálsamo labial com ingredientes especiais para lábios irresistíveis.', 20.00, 150, 1, 4),
+('Elixir do Vale do Oásis', 'Fragrância única que evoca os encantos do Vale do Oásis.', 90.00, 40, 3, 5),
+('Sais de Banho de Nefertari', 'Sais de banho aromáticos para um momento relaxante e revigorante.', 30.00, 100, 5, 6),
+('Loção Corporal de Ra', 'Loção corporal com essência solar inspirada no deus Ra.', 55.00, 60, 4, 2),
+('Pó Iluminador de Anúbis', 'Iluminador em pó para destacar os pontos altos do rosto, com inspiração no deus Anúbis.', 75.00, 30, 1, 3),
+('Água de Luxor', 'Água facial revitalizante inspirada nas águas do rio Luxor.', 28.00, 180, 2, 4),
+('Creme de Isis', 'Creme facial noturno com propriedades regeneradoras, inspirado na deusa Isis.', 100.00, 25, 3, 5),
+('Batom Encantado de Bastet', 'Batom de longa duração com cores intensas, inspirado na deusa Bastet.', 45.00, 70, 4, 1),
+('Esmalte de Hathor', 'Esmalte com cores vibrantes inspiradas na deusa Hathor.', 18.00, 120, 5, 2),
+('Perfume do Faraó', 'Fragrância exclusiva para homens inspirada na elegância dos faraós.', 80.00, 50, 2, 3),
+('Máscara Capilar de Ísis', 'Máscara capilar nutritiva inspirada na deusa Ísis para cabelos deslumbrantes.', 60.00, 60, 1, 5),
+('Sérum Noturno do Deserto', 'Sérum facial noturno para regeneração da pele, com ingredientes do deserto.', 110.00, 35, 3, 1);
 
 -- PEDIDOS NO FORNECEDOR
 INSERT INTO pedidos_fornecedor (data_pedido, status_pedido, id_fornecedor, id_funcionario)
