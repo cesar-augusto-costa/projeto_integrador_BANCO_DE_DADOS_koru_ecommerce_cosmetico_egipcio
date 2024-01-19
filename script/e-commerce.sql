@@ -430,3 +430,46 @@ SELECT * FROM itens_pedido;
 SELECT * FROM vendas;
 -- ITENS DA VENDA
 SELECT * FROM itens_venda;
+
+
+-- Listar todas as pessoas e seus telefones:
+SELECT pessoas.nome, telefones_pessoas.tipo_contato, telefones_pessoas.numero
+FROM pessoas
+JOIN telefones_pessoas ON pessoas.id_pessoa = telefones_pessoas.id_pessoa;
+
+-- Listar todos os fornecedores com seus dados:
+SELECT fornecedores.id_fornecedor, fornecedores.CNPJ, pessoas.nome
+FROM fornecedores
+JOIN pessoas ON fornecedores.id_pessoa = pessoas.id_pessoa;
+
+-- Listar todos os clientes com seus dados:
+SELECT clientes.id_cliente, clientes.CPF, pessoas.nome
+FROM clientes
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa;
+
+-- Listar todos os funcionários com seus dados:
+SELECT funcionarios.id_funcionario, funcionarios.CPF, funcionarios.cargo, funcionarios.salario, pessoas.nome
+FROM funcionarios
+JOIN pessoas ON funcionarios.id_pessoa = pessoas.id_pessoa;
+
+-- Listar todos os produtos com suas categorias e marcas:
+SELECT produtos.nome, produtos.descricao, produtos.preco, produtos.estoque, categorias.nome AS categoria, marcas.nome AS marca
+FROM produtos
+JOIN categorias ON produtos.id_categoria = categorias.id_categoria
+JOIN marcas ON produtos.id_marca = marcas.id_marca;
+
+-- Listar todos os pedidos no fornecedor com status "Entregue":
+SELECT * FROM pedidos_fornecedor WHERE status_pedido = 'Entregue';
+
+-- Listar todos os itens de pedidos com seus produtos associados:
+SELECT itens_pedido.id_item_pedido, itens_pedido.quantidade, itens_pedido.preco_unitario, itens_pedido.total, produtos.nome AS produto
+FROM itens_pedido
+JOIN produtos ON itens_pedido.id_produto = produtos.id_produto;
+
+-- Listar todas as vendas com status "Em processamento":
+SELECT * FROM vendas WHERE status_venda = 'Em processamento';
+
+-- Listar todos os itens de vendas com seus produtos associados:
+SELECT itens_venda.id_item_venda, itens_venda.quantidade, itens_venda.preco_unitario, itens_venda.total, produtos.nome AS produto
+FROM itens_venda
+JOIN produtos ON itens_venda.id_produto = produtos.id_produto;
