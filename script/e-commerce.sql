@@ -473,3 +473,239 @@ SELECT * FROM vendas WHERE status_venda = 'Em processamento';
 SELECT itens_venda.id_item_venda, itens_venda.quantidade, itens_venda.preco_unitario, itens_venda.total, produtos.nome AS produto
 FROM itens_venda
 JOIN produtos ON itens_venda.id_produto = produtos.id_produto;
+
+-- Mostre as marcas de produtos em ordem alfabética.
+SELECT nome FROM marcas ORDER BY nome;
+
+-- Quais são os produtos que têm um preço superior a 100 reais?
+SELECT nome, preco FROM produtos WHERE preco > 100.00 ORDER BY preco DESC;
+
+-- Quem são os clientes e seus estados?
+SELECT clientes.id_cliente, clientes.CPF, pessoas.nome, pessoas.estado
+FROM clientes
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa;
+
+-- Quais são os pedidos no fornecedor que estão "Em processamento"?
+SELECT * FROM pedidos_fornecedor WHERE status_pedido = 'Em processamento';
+
+-- Liste todas as vendas com os nomes dos clientes.
+SELECT vendas.id_venda, vendas.data_venda, clientes.id_cliente, pessoas.nome AS cliente
+FROM vendas
+JOIN clientes ON vendas.id_cliente = clientes.id_cliente
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa;
+
+-- Mostre todos os itens de venda com detalhes de produto.
+SELECT itens_venda.id_item_venda, itens_venda.quantidade, itens_venda.preco_unitario, itens_venda.total, produtos.nome AS produto
+FROM itens_venda
+JOIN produtos ON itens_venda.id_produto = produtos.id_produto;
+
+-- Quais são os funcionários que têm salário superior a 3000 reais?
+SELECT funcionarios.id_funcionario, funcionarios.CPF, funcionarios.salario, pessoas.nome
+FROM funcionarios
+JOIN pessoas ON funcionarios.id_pessoa = pessoas.id_pessoa
+WHERE funcionarios.salario > 3000.00;
+
+-- Qual é a média de estoque dos produtos por categoria?
+SELECT categorias.nome AS categoria, ROUND(AVG(produtos.estoque), 0) AS media_estoque
+FROM produtos
+JOIN categorias ON produtos.id_categoria = categorias.id_categoria
+GROUP BY categorias.nome;
+
+-- Quais são os clientes que fizeram compras com valor total acima de 200 reais?
+SELECT clientes.id_cliente, clientes.CPF, pessoas.nome AS cliente, SUM(itens_venda.total) AS total_compras
+FROM clientes
+JOIN vendas ON clientes.id_cliente = vendas.id_cliente
+JOIN itens_venda ON vendas.id_venda = itens_venda.id_venda
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa
+GROUP BY clientes.id_cliente
+HAVING total_compras > 200.00;
+
+-- Quantos produtos diferentes cada fornecedor fornece?
+SELECT fornecedores.id_fornecedor, COUNT(DISTINCT produtos.id_produto) AS qtd_produtos
+FROM fornecedores
+JOIN pedidos_fornecedor ON fornecedores.id_fornecedor = pedidos_fornecedor.id_fornecedor
+JOIN itens_pedido ON pedidos_fornecedor.id_pedido = itens_pedido.id_pedido
+JOIN produtos ON itens_pedido.id_produto = produtos.id_produto
+GROUP BY fornecedores.id_fornecedor;
+
+-- Quais são os cinco produtos mais caros?
+SELECT nome, preco FROM produtos ORDER BY preco DESC LIMIT 5;
+
+-- Listar os clientes 5 e 6.
+SELECT * FROM clientes LIMIT 2 OFFSET 4;
+
+-- Quais são os últimos três pedidos realizados?
+SELECT * FROM vendas ORDER BY data_venda DESC LIMIT 3;
+
+-- Qual é o total de vendas realizadas até agora?
+SELECT SUM(total) AS total_vendas FROM itens_venda;
+
+-- Quantos produtos têm um estoque abaixo de 50 unidades?
+SELECT COUNT(*) AS qtd_produtos_baixo_estoque FROM produtos WHERE estoque < 50;
+
+-- Quanto é o salário total pago aos funcionários?
+SELECT SUM(salario) AS salario_total FROM funcionarios;
+
+-- Listar todos os produtos com um preço inferior a R$ 30,00:
+SELECT *
+FROM produtos
+WHERE preco < 30.00;
+
+-- Mostrar todos os representantes que estão localizados fora do estado de São Paulo (estado 'SP'):
+SELECT CNPJ, nome, bairro, cidade, estado
+FROM fornecedores
+INNER JOIN pessoas
+ON pessoas.id_pessoa = fornecedores.id_pessoa
+WHERE estado <> 'SP';
+
+-- Listar todos os produtos disponíveis para Cuidados com a Pele, ordenados pelo preço em ordem crescente:
+SELECT produtos.nome, descricao, preco, estoque, categorias.nome
+FROM produtos
+INNER JOIN categorias
+ON produtos.id_categoria = categorias.id_categoria
+WHERE categorias.nome = 'Cuidados com a Pele'
+ORDER BY preco;
+
+-- Listar todas as vendas feitas em janeiro de 2024:
+SELECT *
+FROM vendas
+WHERE EXTRACT(YEAR FROM data_venda) = 2024 AND EXTRACT(MONTH FROM data_venda) = 1;
+
+-- Listar todos os fornecedores e seus telefones, mostrando apenas aqueles que têm pelo menos um telefone cadastrado:
+SELECT *
+FROM fornecedores
+JOIN pessoas
+ON fornecedores.id_pessoa = pessoas.id_pessoa
+JOIN telefones_pessoas
+ON telefones_pessoas.id_pessoa = pessoas.id_pessoa
+WHERE numero IS NOT NULL;
+
+-- Mostrar o produto mais caro:
+SELECT *
+FROM produtos
+ORDER BY preco DESC
+LIMIT 1;
+
+-- Mostrar o segundo produto mais caro:
+SELECT *
+FROM produtos
+ORDER BY preco DESC
+LIMIT 1 OFFSET 1;
+
+-- Mostre as marcas de produtos em ordem alfabética.
+SELECT nome FROM marcas ORDER BY nome;
+
+-- Quais são os produtos que têm um preço superior a 100 reais?
+SELECT nome, preco FROM produtos WHERE preco > 100.00 ORDER BY preco DESC;
+
+-- Quem são os clientes e seus estados?
+SELECT clientes.id_cliente, clientes.CPF, pessoas.nome, pessoas.estado
+FROM clientes
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa;
+
+-- Quais são os pedidos no fornecedor que estão "Em processamento"?
+SELECT * FROM pedidos_fornecedor WHERE status_pedido = 'Em processamento';
+
+-- Liste todas as vendas com os nomes dos clientes.
+SELECT vendas.id_venda, vendas.data_venda, clientes.id_cliente, pessoas.nome AS cliente
+FROM vendas
+JOIN clientes ON vendas.id_cliente = clientes.id_cliente
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa;
+
+-- Mostre todos os itens de venda com detalhes de produto.
+SELECT itens_venda.id_item_venda, itens_venda.quantidade, itens_venda.preco_unitario, itens_venda.total, produtos.nome AS produto
+FROM itens_venda
+JOIN produtos ON itens_venda.id_produto = produtos.id_produto;
+
+-- Quais são os funcionários que têm salário superior a 3000 reais?
+SELECT funcionarios.id_funcionario, funcionarios.CPF, funcionarios.salario, pessoas.nome
+FROM funcionarios
+JOIN pessoas ON funcionarios.id_pessoa = pessoas.id_pessoa
+WHERE funcionarios.salario > 3000.00;
+
+-- Qual é a média de estoque dos produtos por categoria?
+SELECT categorias.nome AS categoria, ROUND(AVG(produtos.estoque), 0) AS media_estoque
+FROM produtos
+JOIN categorias ON produtos.id_categoria = categorias.id_categoria
+GROUP BY categorias.nome;
+
+-- Quais são os clientes que fizeram compras com valor total acima de 200 reais?
+SELECT clientes.id_cliente, clientes.CPF, pessoas.nome AS cliente, SUM(itens_venda.total) AS total_compras
+FROM clientes
+JOIN vendas ON clientes.id_cliente = vendas.id_cliente
+JOIN itens_venda ON vendas.id_venda = itens_venda.id_venda
+JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa
+GROUP BY clientes.id_cliente
+HAVING total_compras > 200.00;
+
+-- Quantos produtos diferentes cada fornecedor fornece?
+SELECT fornecedores.id_fornecedor, COUNT(DISTINCT produtos.id_produto) AS qtd_produtos
+FROM fornecedores
+JOIN pedidos_fornecedor ON fornecedores.id_fornecedor = pedidos_fornecedor.id_fornecedor
+JOIN itens_pedido ON pedidos_fornecedor.id_pedido = itens_pedido.id_pedido
+JOIN produtos ON itens_pedido.id_produto = produtos.id_produto
+GROUP BY fornecedores.id_fornecedor;
+
+-- Quais são os cinco produtos mais caros?
+SELECT nome, preco FROM produtos ORDER BY preco DESC LIMIT 5;
+
+-- Listar os clientes 5 e 6.
+SELECT * FROM clientes LIMIT 2 OFFSET 4;
+
+-- Quais são os últimos três pedidos realizados?
+SELECT * FROM vendas ORDER BY data_venda DESC LIMIT 3;
+
+-- Qual é o total de vendas realizadas até agora?
+SELECT SUM(total) AS total_vendas FROM itens_venda;
+
+-- Quantos produtos têm um estoque abaixo de 50 unidades?
+SELECT COUNT(*) AS qtd_produtos_baixo_estoque FROM produtos WHERE estoque < 50;
+
+-- Quanto é o salário total pago aos funcionários?
+SELECT SUM(salario) AS salario_total FROM funcionarios;
+
+-- Listar todos os produtos com um preço inferior a R$ 30,00:
+SELECT *
+FROM produtos
+WHERE preco < 30.00;
+
+-- Mostrar todos os representantes que estão localizados fora do estado de São Paulo (estado 'SP'):
+SELECT CNPJ, nome, bairro, cidade, estado
+FROM fornecedores
+INNER JOIN pessoas
+ON pessoas.id_pessoa = fornecedores.id_pessoa
+WHERE estado <> 'SP';
+
+-- Listar todos os produtos disponíveis para Cuidados com a Pele, ordenados pelo preço em ordem crescente:
+SELECT produtos.nome, descricao, preco, estoque, categorias.nome
+FROM produtos
+INNER JOIN categorias
+ON produtos.id_categoria = categorias.id_categoria
+WHERE categorias.nome = 'Cuidados com a Pele'
+ORDER BY preco;
+
+-- Listar todas as vendas feitas em janeiro de 2024:
+SELECT *
+FROM vendas
+WHERE EXTRACT(YEAR FROM data_venda) = 2024 AND EXTRACT(MONTH FROM data_venda) = 1;
+
+-- Listar todos os fornecedores e seus telefones, mostrando apenas aqueles que têm pelo menos um telefone cadastrado:
+SELECT *
+FROM fornecedores
+JOIN pessoas
+ON fornecedores.id_pessoa = pessoas.id_pessoa
+JOIN telefones_pessoas
+ON telefones_pessoas.id_pessoa = pessoas.id_pessoa
+WHERE numero IS NOT NULL;
+
+-- Mostrar o produto mais caro:
+SELECT *
+FROM produtos
+ORDER BY preco DESC
+LIMIT 1;
+
+-- Mostrar o segundo produto mais caro:
+SELECT *
+FROM produtos
+ORDER BY preco DESC
+LIMIT 1 OFFSET 1;
