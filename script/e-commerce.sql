@@ -431,6 +431,42 @@ SELECT * FROM vendas;
 -- ITENS DA VENDA
 SELECT * FROM itens_venda;
 
+-- UPDATE
+
+-- Atualizar o e-mail do usuário com o nome de usuário 'alice_in_wonderland':
+UPDATE login
+SET email = 'novo_alice@email.com'
+WHERE nome_usuario = 'alice_in_wonderland';
+
+-- Atualizar o número de telefone da pessoa com o nome 'Ana Silva':
+UPDATE telefones_pessoas
+SET numero = '+55 (011) 9876-5432'
+WHERE id_pessoa = 1;
+
+-- Atualizar o preço do produto com o nome 'Sérum da Cleópatra':
+UPDATE produtos
+SET preco = 130.00
+WHERE nome = 'Sérum da Cleópatra';
+
+-- DELETE
+
+-- Excluir o usuário com o nome de usuário 'frank_the_tank':
+DELETE FROM login
+WHERE nome_usuario = 'frank_the_tank';
+
+-- Excluir a pessoa com o nome 'Bruno Oliveira' e todos os registros de telefone relacionados:
+DELETE FROM telefones_pessoas
+WHERE id_pessoa = (SELECT id_pessoa FROM pessoas WHERE nome = 'Bruno Oliveira');
+DELETE FROM pessoas
+WHERE nome = 'Bruno Oliveira';
+
+-- Excluir a categoria com o nome 'Maquiagem Egípcia' e todos os registros de produtos relacionados:
+DELETE FROM produtos
+WHERE id_categoria = (SELECT id_categoria FROM categorias WHERE nome = 'Maquiagem Egípcia');
+DELETE FROM categorias
+WHERE nome = 'Maquiagem Egípcia';
+
+-- CONSULTAS
 
 -- Listar todas as pessoas e seus telefones:
 SELECT pessoas.nome, telefones_pessoas.tipo_contato, telefones_pessoas.numero
