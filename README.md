@@ -19,7 +19,7 @@
   &nbsp;&nbsp;
   <img align="center" alt="icone-VS-CODE" height="60" src="https://github.com/devicons/devicon/blob/master/icons/vscode/vscode-original.svg">
   &nbsp;&nbsp;
-  <img align="center" alt="icone-MySQL" height="60" src="https://github.com/devicons/devicon/blob/master/icons/mysql/mysql-original-wordmark.svg">
+  <img align="center" alt="icone-MySQL" height="120" src="https://github.com/devicons/devicon/blob/master/icons/mysql/mysql-original-wordmark.svg">
   &nbsp;&nbsp;
 </div>
 
@@ -36,9 +36,7 @@ SGBDR - Sistema Gerenciador de Banco de Dados Relacional<br>
 
 ---
 
-ecommerce_cosmetico_egipcio
-
-## **TEMA** <br><br>Ecommerce de Cosmético Egipcio
+## **TEMA**: Ecommerce de Cosmético Egipcio
 
 ## Objetivo do Projeto
 
