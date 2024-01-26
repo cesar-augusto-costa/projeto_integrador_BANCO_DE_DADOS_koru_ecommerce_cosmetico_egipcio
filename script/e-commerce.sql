@@ -1,10 +1,11 @@
--- COSMÉTICO QUE ATENDE O BRASIL TODO
+-- COSMÉTICO EGÍPCIO QUE ATENDE O BRASIL TODO
 
 DROP DATABASE IF EXISTS ecommerce_cosmetico_egipcio;
 CREATE DATABASE ecommerce_cosmetico_egipcio;
 
 USE ecommerce_cosmetico_egipcio;
 
+-- LOGIN
 CREATE TABLE login (
   id_login INT PRIMARY KEY AUTO_INCREMENT,
   nome_usuario VARCHAR(100) UNIQUE NOT NULL,
@@ -745,3 +746,190 @@ SELECT *
 FROM produtos
 ORDER BY preco DESC
 LIMIT 1 OFFSET 1;
+
+-- TOP (assumindo que seja usado no contexto do SQL Server)
+-- Selecionar os top 5 produtos mais caros:
+SELECT TOP 5 *
+FROM produtos
+ORDER BY preco DESC
+
+-- Exemplo com GROUP BY e AVG
+-- Calcular o preço médio de cada produto na coluna 'preco_medio':
+SELECT produto, AVG(preco) AS preco_medio
+FROM produtos
+GROUP BY produto;
+
+-- Exemplo com GROUP BY e MAX
+-- Encontrar o preço máximo de cada marca na coluna 'preco_maximo':
+SELECT marca, MAX(preco) AS preco_maximo
+FROM produtos
+GROUP BY marca;
+
+-- Exemplo com GROUP BY e MIN
+-- Encontrar o estoque minimo de produtos para cada categoria:
+SELECT categoria, MIN(estoque) AS estoque_minimo
+FROM produtos
+GROUP BY categoria;
+
+-- Exemplo com GROUP BY e STDEV
+-- Calcular o desvio padrão dos preços dos produtos para cada marca:
+SELECT marca, STDEV(preco) AS desvio_padrao_precos
+FROM produtos
+GROUP BY marca;
+
+-- A função FIRST não existe nativamente no MYSQL
+-- Exemplo com GROUP BY e FIRST
+-- Encontrar o primeiro valor da coluna 'estoque' para cada grupo de 'marca':
+/*
+SELECT marca, FIRST(estoque) AS primeiro_estoque
+FROM produtos
+GROUP BY marca;
+*/
+--Para corrigir a falta dessa função, pode ser feito dessa maneira:
+-- Exemplo com GROUP BY e MIN para obter o primeiro estoque
+SELECT marca, MIN(estoque) AS primeiro_estoque
+FROM produtos
+GROUP BY marca;
+
+-- A função MEDIAN não existe navitamente no MYSQL
+-- Exemplo com GROUP BY e MEDIAN
+-- Calcular a mediana para cada grupo de categoria:
+/*
+SELECT categoria, MEDIAN(preco) AS preco_mediano
+FROM produtos
+GROUP BY categoria;
+*/
+--Para corrigir a falta dessa função, pode ser feito dessa maneira:
+-- Exemplo de cálculo da mediana usando subconsulta
+SELECT
+  categoria,
+  AVG(preco) AS preco_mediano
+FROM (
+  SELECT
+    categoria,
+    preco,
+    ROW_NUMBER() OVER (PARTITION BY categoria ORDER BY preco) AS row_num,
+    COUNT(*) OVER (PARTITION BY categoria) AS total_rows
+  FROM produtos
+) AS ranked
+WHERE row_num = CEIL(total_rows / 2.0) OR row_num = FLOOR(total_rows / 2.0) + 1
+GROUP BY categoria;
+/* 
+EXPLICAÇÃO:
+Foi usado uma subconsulta para atribuir número de linha ('row_num') a cada linha dentro de cada grupo de categoria,
+ordenando as linhas pelo preço. Em seguida, usou a função AVG para calcular a média dos preços onde row_num é igual
+a metade do número total de linhas ou a metade arredondada para cima, que é a mediana. Isso é feito para cada grupo de categoria. 
+*/
+
+-- A função MODE não existe nativamente no MYSQL
+-- Exemplo com GROUP BY e MODE
+-- Calcular a cor que aparece com mais frequência nos produtos:
+/*
+SELECT cor, MODE() WITHIN GROUP (ORDER BY quantidade) AS cor_mais_frequente
+FROM produtos
+GROUP BY cor;
+*/
+--Para corrigir a falta dessa função, pode ser feito dessa maneira:
+-- Exemplo de cálculo da moda usando subconsulta
+SELECT
+  cor,
+  cor_mais_frequente
+FROM (
+  SELECT
+    cor,
+    quantidade,
+    ROW_NUMBER() OVER (PARTITION BY cor ORDER BY quantidade DESC) AS row_num
+  FROM produtos
+) AS ranked
+WHERE row_num = 1;
+/* 
+EXPLICAÇÃO:
+A moda (MODE) é o valor que ocorre com mais frequência em um conjunto de dados.
+Foi usado uma subconsulta para atribuir números de linha ('row_num') a cada linha dentro de cada grupo de cor,
+ordenando as linhas pela quantidade em ordem decrescente. Em seguida, selecionamos apenas as linhas onde row_num é igual a 1,
+identificando assim a cor mais frequente (moda) em cada grupo de cor.
+*/
+
+-- Exemplo com GROUP BY e CORR
+-- Calcular a correlação entre os valores das colunas 'preco' e 'estoque' para cada grupo de categoria na tabela de produtos:
+SELECT categoria, CORR(preco, estoque) AS correlacao_preco_estoque
+FROM produtos
+GROUP BY categoria;
+/* 
+EXPLICAÇÃO:
+A correlação varia de -1 a 1, onde:
+1 indica uma correlação positiva perfeita
+-1 indica uma correlação negativa perfeita
+0 indica ausência de correlação linear
+*/
+
+-- Consulta com LEFT JOIN
+-- Retorna o nome dos clientes e as datas de suas vendas(se existirem):
+SELECT clientes.nome, vendas.data_venda
+FROM clientes
+LEFT JOIN vendas ON clientes.id_cliente = vendas.id_cliente;
+/* 
+EXPLICAÇÃO:
+Garante que todos os clientes estejam presentes na saída, mesmo que não tenham feito nenhuma compra. 
+Se um cliente não tiver vendas associadas, a coluna data_venda será nula.
+*/
+
+-- Consulta com RIGHT JOIN
+-- Retorna os IDs das vendas e os IDs dos produtos associados (se existirem):
+SELECT vendas.id_venda, itens_venda.id_produto
+FROM vendas
+RIGHT JOIN itens_venda ON vendas.id_venda = itens_venda.id_venda;
+/* 
+EXPLICAÇÃO:
+Garante que todas as linhas de itens_venda estejam presentes na saída, mesmo que não tenham uma venda correspondente. 
+Se um item não estiver associado a uma venda, a coluna id_venda será nula.
+*/
+
+-- Consulta com FULL JOIN
+-- Retorna os nomes dos funcionários e os IDs dos pedidos de fornecedores associados (se existirem):
+SELECT funcionarios.nome, pedidos_fornecedor.id_pedido
+FROM funcionarios
+FULL JOIN pedidos_fornecedor ON funcionarios.id_funcionario = pedidos_fornecedor.id_funcionario;
+/* 
+EXPLICAÇÃO:
+Garante que todas as linhas de funcionarios e pedidos_fornecedor estejam presentes na saída. 
+Se um funcionário não estiver associado a um pedido ou vice-versa, as colunas relacionadas serão nulas.
+*/
+
+-- Consultas com subconsultas
+-- Identificar e listar os nomes das pessoas que possuem pelo menos um número de telefone do tipo 'celular' na tabela telefone das pessoas:
+SELECT nome
+FROM pessoas
+WHERE id_pessoa IN (SELECT id_pessoa FROM telefones_pessoas WHERE tipo_contato = 'Celular');
+
+-- UNION - Seleção de Nomes de Clientes e Fornecedores
+-- Realiza uma união dos nomes de clientes e fornecedores, removendo duplicatas:
+SELECT nome FROM clientes
+UNION
+SELECT nome FROM fornecedores;
+/* 
+EXPLICAÇÃO:
+Se a tabela clientes tem os nomes "Ana" e "Carlos" e a tabela fornecedores tem os nomes "Carlos" e "David", o resultado seria "Ana", "Carlos", "David".
+*/
+
+-- ALTER TABLE - Adição de Coluna "Peso" na Tabela "Produtos"
+-- Adiciona uma nova coluna chamada "peso" à tabela "produtos" com o tipo de dados DECIMAL(5,2):
+ALTER TABLE produtos
+ADD COLUMN peso DECIMAL(5,2);
+/*
+EXPLICAÇÃO:
+Adiciona uma coluna que armazena valores decimais com até 5 dígitos no total, sendo 2 deles após o ponto decimal.
+A tabela "produtos" agora terá uma nova coluna chamada "peso".
+*/
+
+-- CREATE VIEW - Criação de uma Visão chamada "produtos_vendidos"
+-- Cria uma visão chamada "produtos_vendidos" que contém os nomes dos produtos e suas quantidades vendidas, unindo as tabelas "itens_venda" e "produtos":
+CREATE VIEW produtos_vendidos AS
+SELECT produtos.nome, itens_venda.quantidade
+FROM itens_venda
+JOIN produtos ON itens_venda.id_produto = produtos.id_produto;
+/*
+EXPLICAÇÃO:
+Facilita consultas que envolvem a quantidade de produtos vendidos sem a necessidade de escrever a junção toda vez.
+Agora pode consultar a visão "produtos_vendidos" para obter informações sobre produtos vendidos.
+*/
