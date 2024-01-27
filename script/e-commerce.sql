@@ -28,8 +28,16 @@ CREATE TABLE pessoas (
     id_login INT,
 	FOREIGN KEY (id_login) REFERENCES login(id_login)
     ON DELETE CASCADE ON UPDATE CASCADE,
-    INDEX idx_nome_pessoa (nome)
+    FULLTEXT (nome) -- Índice FULLTEXT (ìndice de texto completo): adicionado a coluna nome na tabela pessoas
 );
+
+-- Exemplo de consulta usando índice de texto completo
+-- Ajustar a consulta com a palavra que deseja consultar na coluna nome
+/*
+SELECT *
+FROM pessoas
+WHERE MATCH (nome) AGAINST ('palavra-chave');
+*/
 
 -- TELEFONES DAS PESSOAS
 CREATE TABLE telefones_pessoas (
@@ -84,25 +92,29 @@ CREATE TABLE marcas (
 CREATE TABLE categorias (
     id_categoria INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(100) UNIQUE NOT NULL,
-    INDEX idx_nome_categoria (nome)
+    INDEX idx_nome_categoria (nome) -- Índice Único: garante que esse valor seja exclusivo, onde não deve ter duplicatas.
 );
 
 -- PRODUTOS
 CREATE TABLE produtos (
-    id_produto INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(255) UNIQUE NOT NULL,
+    id_produto INT PRIMARY KEY AUTO_INCREMENT, -- Constraint Primary Key: cada valor único e não nulo.
+    nome VARCHAR(255) UNIQUE NOT NULL, -- Constraint Unique: a coluna nome é definida como única.
     descricao TEXT,
-    preco DECIMAL(10, 2) NOT NULL,
+    preco DECIMAL(10, 2) NOT NULL CHECK (preco >= 0), -- Constraint Check: garante que o preço seja sempre não negativo
     estoque INT NOT NULL,
     id_marca INT,
     id_categoria INT,
-    CHECK (estoque >= 0),
-    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
-    ON DELETE CASCADE ON UPDATE CASCADE,
+    CHECK (estoque >= 0), -- Constraint Check: assegura que o valor na coluna estoque seja sempre não negativo
+    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria) -- Constraint Foreign Key: chave estrangeira presente referenciando as tabelas categorias e marcas
+    ON DELETE CASCADE ON UPDATE CASCADE, -- Constraint On Update Cascade: garante a integridade referencial
     FOREIGN KEY (id_marca) REFERENCES marcas(id_marca)
-    ON DELETE CASCADE ON UPDATE CASCADE,
-    INDEX idx_nome_produto (nome)
+    ON DELETE CASCADE ON UPDATE CASCADE, -- Constraint On Delete Cascade: garante a integridade referencial
+    INDEX idx_nome_produto (nome, id_categoria) -- Índice Composto: otimiza consulta de dados usando uma combinação específica dessas colunas.
 );
+/*
+EXPLICAÇÃO:
+Todas as tabelas foram criadas com CONSTRAINTS, mas a de Produtos foi usado como exemplo, pois é a mais completa.
+*/
 
 -- PEDIDOS NO FORNECEDOR
 CREATE TABLE pedidos_fornecedor (
@@ -136,7 +148,7 @@ CREATE TABLE itens_pedido (
 	INDEX idx_produto_pedido (id_produto)
 );
 
--- VENDAS
+-- VENDAS (Tabela Particionada por Ano)
 CREATE TABLE vendas (
     id_venda INT PRIMARY KEY AUTO_INCREMENT,
     data_venda DATE NOT NULL,
@@ -149,7 +161,7 @@ CREATE TABLE vendas (
     ON DELETE CASCADE ON UPDATE CASCADE,
 	INDEX idx_cliente (id_cliente),
 	INDEX idx_funcionario (id_funcionario)
-);
+) PARTITION BY RANGE (EXTRACT(YEAR FROM data_venda)); -- Particionamento: indica que a tabela Vendas será particionada por ano, criando partições separadas por ano.
 
 -- ITENS DA VENDA
 CREATE TABLE itens_venda (
@@ -932,4 +944,14 @@ JOIN produtos ON itens_venda.id_produto = produtos.id_produto;
 EXPLICAÇÃO:
 Facilita consultas que envolvem a quantidade de produtos vendidos sem a necessidade de escrever a junção toda vez.
 Agora pode consultar a visão "produtos_vendidos" para obter informações sobre produtos vendidos.
+*/
+
+-- Otimização de Consulta: EXPLAIN
+-- EXPLAIN é usado para analisar o plano de execução de uma consulta:
+EXPLAIN SELECT * FROM vendas WHERE id_cliente = 1;
+/*
+EXPLICAÇÃO:
+Este comando EXPLAIN está sendo usado para analisar a consulta que seleciona todas as colunas da tabela vendas onde o id_cliente é igual a 1.
+As informações fornecidas podem incluir detalhes sobre quais índices são usados, 
+se há alguma varredura de tabela, e a ordem de execução dos diferentes estágios da consulta.
 */

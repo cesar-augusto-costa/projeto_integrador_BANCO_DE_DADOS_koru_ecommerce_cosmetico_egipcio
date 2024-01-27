@@ -36,11 +36,19 @@ SGBDR - Sistema Gerenciador de Banco de Dados Relacional<br>
 
 ---
 
-## **TEMA**: Ecommerce de Cosmético Egipcio
+## **TEMA**: E-commerce de Cosmético Egipcio
 
 ## Objetivo do Projeto
 
-#### Desenvolver um banco de dados para o ecommerce
+#### Desenvolver um banco de dados para o e-commerce de produtos cosméticos da linha egípcia.
+
+<div align="center">
+  <img src="/images/cosmetic1.jpg" alt="Imagem da linha de cosméticos egípcios 1" width="50%">
+</div>
+
+<div align="center">
+  <img src="/images/cosmetic2.jpg" alt="Imagem da linha de cosméticos egípcios 2" width="50%">
+</div>
 
 ---
 
