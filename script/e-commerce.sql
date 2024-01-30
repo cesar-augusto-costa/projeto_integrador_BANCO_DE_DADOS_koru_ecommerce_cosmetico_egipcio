@@ -161,7 +161,7 @@ CREATE TABLE vendas (
     ON DELETE CASCADE ON UPDATE CASCADE,
 	INDEX idx_cliente (id_cliente),
 	INDEX idx_funcionario (id_funcionario)
-) PARTITION BY RANGE (EXTRACT(YEAR FROM data_venda)); -- Particionamento: indica que a tabela Vendas será particionada por ano, criando partições separadas por ano.
+); -- PARTITION BY RANGE (EXTRACT(YEAR FROM data_venda)); -- Particionamento: indica que a tabela Vendas será particionada por ano, criando partições separadas por ano.
 
 -- ITENS DA VENDA
 CREATE TABLE itens_venda (
@@ -761,9 +761,10 @@ LIMIT 1 OFFSET 1;
 
 -- TOP (assumindo que seja usado no contexto do SQL Server)
 -- Selecionar os top 5 produtos mais caros:
-SELECT TOP 5 *
+SELECT *
 FROM produtos
 ORDER BY preco DESC
+LIMIT 5;
 
 -- Exemplo com GROUP BY e AVG
 -- Calcular o preço médio de cada produto na coluna 'preco_medio':
@@ -797,7 +798,7 @@ SELECT marca, FIRST(estoque) AS primeiro_estoque
 FROM produtos
 GROUP BY marca;
 */
---Para corrigir a falta dessa função, pode ser feito dessa maneira:
+-- Para corrigir a falta dessa função, pode ser feito dessa maneira:
 -- Exemplo com GROUP BY e MIN para obter o primeiro estoque
 SELECT marca, MIN(estoque) AS primeiro_estoque
 FROM produtos
@@ -811,7 +812,7 @@ SELECT categoria, MEDIAN(preco) AS preco_mediano
 FROM produtos
 GROUP BY categoria;
 */
---Para corrigir a falta dessa função, pode ser feito dessa maneira:
+-- Para corrigir a falta dessa função, pode ser feito dessa maneira:
 -- Exemplo de cálculo da mediana usando subconsulta
 SELECT
   categoria,
@@ -841,7 +842,7 @@ SELECT cor, MODE() WITHIN GROUP (ORDER BY quantidade) AS cor_mais_frequente
 FROM produtos
 GROUP BY cor;
 */
---Para corrigir a falta dessa função, pode ser feito dessa maneira:
+-- Para corrigir a falta dessa função, pode ser feito dessa maneira:
 -- Exemplo de cálculo da moda usando subconsulta
 SELECT
   cor,
