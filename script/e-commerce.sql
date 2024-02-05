@@ -161,7 +161,11 @@ CREATE TABLE vendas (
     ON DELETE CASCADE ON UPDATE CASCADE,
 	INDEX idx_cliente (id_cliente),
 	INDEX idx_funcionario (id_funcionario)
-); -- PARTITION BY RANGE (EXTRACT(YEAR FROM data_venda)); -- Particionamento: indica que a tabela Vendas será particionada por ano, criando partições separadas por ano.
+);  -- PARTITION BY RANGE (EXTRACT(YEAR FROM data_venda)) (
+	-- PARTITION  p2022 VALUES LESS THAN (2023),
+    -- PARTITION  p2023 VALUES LESS THAN (2024),
+    -- PARTITION  p2024 VALUES LESS THAN (2025)
+	-- Particionamento: indica que a tabela Vendas será particionada por ano, criando partições separadas por ano.
 
 -- ITENS DA VENDA
 CREATE TABLE itens_venda (
@@ -390,12 +394,12 @@ VALUES
 ('2024-01-15', 'Em processamento', 2, 3),
 ('2024-01-16', 'Entregue', 3, 2),
 ('2024-01-17', 'Enviado', 4, 3),
-('2024-01-18', 'Em processamento', 5, 2),
-('2024-01-19', 'Entregue', 6, 3),
-('2024-01-20', 'Enviado', 7, 2),
-('2024-01-21', 'Em processamento', 1, 3),
-('2024-01-22', 'Entregue', 2, 2),
-('2024-01-23', 'Enviado', 3, 3);
+('2023-01-18', 'Em processamento', 5, 2),
+('2023-01-19', 'Entregue', 6, 3),
+('2023-01-20', 'Enviado', 7, 2),
+('2022-01-21', 'Em processamento', 1, 3),
+('2022-01-22', 'Entregue', 2, 2),
+('2022-01-23', 'Enviado', 3, 3);
 
 -- ITENS DA VENDA
 INSERT INTO itens_venda (quantidade, preco_unitario, total, id_venda, id_produto)
@@ -759,8 +763,15 @@ FROM produtos
 ORDER BY preco DESC
 LIMIT 1 OFFSET 1;
 
+-- A função TOP não existe nativamente no MYSQL
 -- TOP (assumindo que seja usado no contexto do SQL Server)
 -- Selecionar os top 5 produtos mais caros:
+/*
+SELECT TOP 5 *
+FROM produtos
+ORDER BY preco DESC;
+*/
+-- Para corrigir a falta de TOP, pode ser usado LIMIT:
 SELECT *
 FROM produtos
 ORDER BY preco DESC
@@ -768,26 +779,29 @@ LIMIT 5;
 
 -- Exemplo com GROUP BY e AVG
 -- Calcular o preço médio de cada produto na coluna 'preco_medio':
-SELECT produto, AVG(preco) AS preco_medio
+SELECT nome , AVG(preco) AS preco_medio
 FROM produtos
-GROUP BY produto;
+GROUP BY nome;
 
 -- Exemplo com GROUP BY e MAX
 -- Encontrar o preço máximo de cada marca na coluna 'preco_maximo':
-SELECT marca, MAX(preco) AS preco_maximo
+SELECT marcas.nome AS marca, MAX(preco) AS preco_maximo
 FROM produtos
+JOIN marcas ON produtos.id_marca = marcas.id_marca
 GROUP BY marca;
 
 -- Exemplo com GROUP BY e MIN
 -- Encontrar o estoque minimo de produtos para cada categoria:
-SELECT categoria, MIN(estoque) AS estoque_minimo
+SELECT categorias.nome AS categoria, MIN(estoque) AS estoque_minimo
 FROM produtos
+JOIN categorias ON produtos.id_categoria = categorias.id_categoria
 GROUP BY categoria;
 
--- Exemplo com GROUP BY e STDEV
+-- Exemplo com GROUP BY e STDDEV
 -- Calcular o desvio padrão dos preços dos produtos para cada marca:
-SELECT marca, STDEV(preco) AS desvio_padrao_precos
+SELECT marcas.nome AS marca, STDDEV(preco) AS desvio_padrao_precos
 FROM produtos
+JOIN marcas ON produtos.id_marca = marcas.id_marca
 GROUP BY marca;
 
 -- A função FIRST não existe nativamente no MYSQL
@@ -800,8 +814,9 @@ GROUP BY marca;
 */
 -- Para corrigir a falta dessa função, pode ser feito dessa maneira:
 -- Exemplo com GROUP BY e MIN para obter o primeiro estoque
-SELECT marca, MIN(estoque) AS primeiro_estoque
+SELECT marcas.nome AS marca, MIN(estoque) AS primeiro_estoque
 FROM produtos
+JOIN marcas ON produtos.id_marca = marcas.id_marca
 GROUP BY marca;
 
 -- A função MEDIAN não existe navitamente no MYSQL
@@ -813,74 +828,106 @@ FROM produtos
 GROUP BY categoria;
 */
 -- Para corrigir a falta dessa função, pode ser feito dessa maneira:
--- Exemplo de cálculo da mediana usando subconsulta
+-- Exemplo de cálculo da mediana sem funções de janela com JOIN
 SELECT
-  categoria,
-  AVG(preco) AS preco_mediano
+  c.nome AS categoria,
+  AVG(preco) AS preco_mediano -- Calcula a média dos preços das linhas que representam a mediana para cada categoria.
 FROM (
   SELECT
-    categoria,
+    id_categoria,
     preco,
-    ROW_NUMBER() OVER (PARTITION BY categoria ORDER BY preco) AS row_num,
-    COUNT(*) OVER (PARTITION BY categoria) AS total_rows
+    @row_num := @row_num + 1 AS row_num, -- Atribui um número de linha sequencial dentro de cada grupo de categoria.
+    @total_rows := COUNT(*) AS total_rows -- Calcula o número total de linhas em cada grupo de categoria.
   FROM produtos
+  CROSS JOIN (SELECT @row_num := 0, @total_rows := 0) AS vars -- Inicializa as variáveis @row_num e @total_rows para serem usadas na contagem de linhas e determinação da mediana.
+  GROUP BY id_categoria
+  ORDER BY id_categoria, preco -- Agrupa os dados por categoria e ordena pelos preços dentro de cada categoria.
 ) AS ranked
-WHERE row_num = CEIL(total_rows / 2.0) OR row_num = FLOOR(total_rows / 2.0) + 1
+JOIN categorias c ON ranked.id_categoria = c.id_categoria -- Junta a tabela categorias para obter o nome da categoria correspondente.
+WHERE row_num = CEIL(total_rows / 2) OR row_num = FLOOR(total_rows / 2) + 1 -- Filtra as linhas que correspondem à mediana, considerando se o número total de linhas é par ou ímpar.
 GROUP BY categoria;
 /* 
 EXPLICAÇÃO:
-Foi usado uma subconsulta para atribuir número de linha ('row_num') a cada linha dentro de cada grupo de categoria,
-ordenando as linhas pelo preço. Em seguida, usou a função AVG para calcular a média dos preços onde row_num é igual
-a metade do número total de linhas ou a metade arredondada para cima, que é a mediana. Isso é feito para cada grupo de categoria. 
+Essencialmente, esse código utiliza variáveis para numerar as linhas dentro de cada categoria, e em seguida, calcula a mediana com base nessas informações.
+A junção com a tabela de categorias é feita para incluir os nomes das categorias no resultado final.
 */
 
 -- A função MODE não existe nativamente no MYSQL
 -- Exemplo com GROUP BY e MODE
--- Calcular a cor que aparece com mais frequência nos produtos:
+-- Calcular a quantidade mais frequente de itens em um pedido:
 /*
-SELECT cor, MODE() WITHIN GROUP (ORDER BY quantidade) AS cor_mais_frequente
-FROM produtos
-GROUP BY cor;
+SELECT
+  id_pedido,
+  MODE() WITHIN GROUP (ORDER BY quantidade) AS quantidade_mais_frequente
+FROM itens_pedido
+GROUP BY id_pedido;
 */
 -- Para corrigir a falta dessa função, pode ser feito dessa maneira:
 -- Exemplo de cálculo da moda usando subconsulta
 SELECT
-  cor,
-  cor_mais_frequente
+  id_pedido,
+  quantidade AS quantidade_mais_frequente
 FROM (
   SELECT
-    cor,
+    id_pedido,
     quantidade,
-    ROW_NUMBER() OVER (PARTITION BY cor ORDER BY quantidade DESC) AS row_num
-  FROM produtos
-) AS ranked
-WHERE row_num = 1;
+    COUNT(*) AS quantidade_ocorrencias
+  FROM itens_pedido
+  GROUP BY id_pedido, quantidade
+) AS grouped
+WHERE (
+  SELECT MAX(quantidade_ocorrencias)
+  FROM (
+    SELECT
+      id_pedido,
+      quantidade,
+      COUNT(*) AS quantidade_ocorrencias
+    FROM itens_pedido
+    GROUP BY id_pedido, quantidade
+  ) AS counts
+  WHERE id_pedido = grouped.id_pedido
+) = quantidade_ocorrencias;
 /* 
 EXPLICAÇÃO:
-A moda (MODE) é o valor que ocorre com mais frequência em um conjunto de dados.
-Foi usado uma subconsulta para atribuir números de linha ('row_num') a cada linha dentro de cada grupo de cor,
-ordenando as linhas pela quantidade em ordem decrescente. Em seguida, selecionamos apenas as linhas onde row_num é igual a 1,
-identificando assim a cor mais frequente (moda) em cada grupo de cor.
+A subconsulta interna grouped conta as ocorrências de cada quantidade em cada pedido.
+A consulta externa compara essas contagens usando uma subconsulta correlacionada para encontrar a quantidade mais frequente para cada id_pedido.
+Esse método alternativo usa uma abordagem de contagem e comparação para encontrar a quantidade mais frequente.
 */
 
+-- A função CORR não existe nativamente no MYSQL
 -- Exemplo com GROUP BY e CORR
 -- Calcular a correlação entre os valores das colunas 'preco' e 'estoque' para cada grupo de categoria na tabela de produtos:
-SELECT categoria, CORR(preco, estoque) AS correlacao_preco_estoque
+/*
+SELECT categorias.nome AS categoria, CORR(preco, estoque) AS correlacao_preco_estoque
 FROM produtos
+JOIN categorias ON produtos.id_categoria = categorias.id_categoria
+GROUP BY categoria;
+*/
+-- Calcular a correlação entre os valores das colunas 'preco' e 'estoque' para cada grupo de categoria na tabela de produtos:
+SELECT
+    categorias.nome AS categoria,
+    (
+        COUNT(*) * SUM(preco * estoque) -
+        SUM(preco) * SUM(estoque)
+    ) / SQRT(
+        (COUNT(*) * SUM(preco * preco) - (SUM(preco))^2) *
+        (COUNT(*) * SUM(estoque * estoque) - (SUM(estoque))^2)
+    ) AS correlacao_preco_estoque
+FROM produtos
+JOIN categorias ON produtos.id_categoria = categorias.id_categoria
 GROUP BY categoria;
 /* 
 EXPLICAÇÃO:
-A correlação varia de -1 a 1, onde:
-1 indica uma correlação positiva perfeita
--1 indica uma correlação negativa perfeita
-0 indica ausência de correlação linear
+Essa consulta utiliza funções de agregação como COUNT, SUM e a fórmula mencionada acima para calcular a correlação.
+Lembre-se de que, embora funcione, a sintaxe pode parecer complexa devido à ausência de uma função CORR nativa no MySQL.
 */
 
 -- Consulta com LEFT JOIN
 -- Retorna o nome dos clientes e as datas de suas vendas(se existirem):
-SELECT clientes.nome, vendas.data_venda
+SELECT pessoas.nome, vendas.data_venda
 FROM clientes
-LEFT JOIN vendas ON clientes.id_cliente = vendas.id_cliente;
+LEFT JOIN vendas ON clientes.id_cliente = vendas.id_cliente
+LEFT JOIN pessoas ON clientes.id_pessoa = pessoas.id_pessoa;
 /* 
 EXPLICAÇÃO:
 Garante que todos os clientes estejam presentes na saída, mesmo que não tenham feito nenhuma compra. 
@@ -898,15 +945,27 @@ Garante que todas as linhas de itens_venda estejam presentes na saída, mesmo qu
 Se um item não estiver associado a uma venda, a coluna id_venda será nula.
 */
 
+-- A função FULL JOIN não existe nativamente no MYSQL
 -- Consulta com FULL JOIN
--- Retorna os nomes dos funcionários e os IDs dos pedidos de fornecedores associados (se existirem):
-SELECT funcionarios.nome, pedidos_fornecedor.id_pedido
+-- Retorna os nomes de pessoas (clientes ou funcionários) e os IDs das transações (id_venda ou id_pedido) associadas a essas pessoas:
+/*
+SELECT pessoas.nome, pedidos_fornecedor.id_pedido
 FROM funcionarios
-FULL JOIN pedidos_fornecedor ON funcionarios.id_funcionario = pedidos_fornecedor.id_funcionario;
+FULL JOIN pedidos_fornecedor ON funcionarios.id_pessoa = pedidos_fornecedor.id_funcionario
+LEFT JOIN pessoas ON funcionarios.id_pessoa = pessoas.id_pessoa;
+*/
+SELECT pessoas.nome, COALESCE(vendas.id_venda, pedidos_fornecedor.id_pedido) AS id_transacao
+FROM clientes
+LEFT JOIN vendas ON clientes.id_cliente = vendas.id_cliente
+LEFT JOIN (
+    funcionarios
+    RIGHT JOIN pedidos_fornecedor ON funcionarios.id_pessoa = pedidos_fornecedor.id_funcionario
+    LEFT JOIN pessoas ON funcionarios.id_pessoa = pessoas.id_pessoa
+) ON clientes.id_cliente = vendas.id_cliente;
 /* 
 EXPLICAÇÃO:
-Garante que todas as linhas de funcionarios e pedidos_fornecedor estejam presentes na saída. 
-Se um funcionário não estiver associado a um pedido ou vice-versa, as colunas relacionadas serão nulas.
+O uso de LEFT JOIN e RIGHT JOIN simula o efeito de um FULL JOIN, 
+garantindo que todas as linhas das tabelas à esquerda e à direita sejam incluídas na saída, mesmo que não haja correspondência.
 */
 
 -- Consultas com subconsultas
@@ -917,9 +976,13 @@ WHERE id_pessoa IN (SELECT id_pessoa FROM telefones_pessoas WHERE tipo_contato =
 
 -- UNION - Seleção de Nomes de Clientes e Fornecedores
 -- Realiza uma união dos nomes de clientes e fornecedores, removendo duplicatas:
-SELECT nome FROM clientes
+SELECT pessoas.nome
+FROM pessoas
+JOIN clientes ON pessoas.id_pessoa = clientes.id_pessoa
 UNION
-SELECT nome FROM fornecedores;
+SELECT pessoas.nome
+FROM pessoas
+JOIN fornecedores ON pessoas.id_pessoa = fornecedores.id_pessoa;
 /* 
 EXPLICAÇÃO:
 Se a tabela clientes tem os nomes "Ana" e "Carlos" e a tabela fornecedores tem os nomes "Carlos" e "David", o resultado seria "Ana", "Carlos", "David".
